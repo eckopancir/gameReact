@@ -1,0 +1,1465 @@
+/* Фиксированный оверлей на весь экран */
+.battle-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  flex-direction: row; /* Выстраиваем Панель -> Арену -> Стек в ряд */
+  align-items: flex-start;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px;
+
+  z-index: 9999;
+}
+/* ГЛАВНОЕ ИЗМЕНЕНИЕ: Контейнер теперь сам является визуальной панелью */
+.side-intel-container {
+  width: 302px;
+  height: 400px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: visible;
+  background: rgba(0, 15, 0, 0.95);
+  border: 2px solid #00ff41;
+  box-shadow: 0 0 15px rgba(0, 255, 65, 0.2);
+  box-sizing: border-box;
+}
+
+.enemy-intel-panel {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  box-sizing: border-box;
+  font-family: 'Courier New', monospace;
+  color: #00ff41;
+  position: absolute;
+  background: rgba(10, 35, 10, 0.95);
+  border: 0px solid #00ff41;
+  box-shadow: 0 0 15px rgba(0, 255, 65, 0.3);
+  z-index: 200;
+  pointer-events: none;
+  transition: all 0.4s ease; /* анимация появления данных в панеле */
+}
+/* Панель разведки врага */
+
+/* Заглушка ожидания */
+.intel-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #00ff41;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  letter-spacing: 2px;
+  text-align: center;
+  /* Убираем border здесь, так как он теперь на контейнере */
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 255, 65, 0.03) 0px,
+    rgba(0, 255, 65, 0.03) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+}
+.side-panels-stack {
+  display: flex;
+  flex-direction: column;
+  margin-top: 1px;
+  gap: 25px; /* Расстояние между панелями */
+  align-self: flex-start; /* Чтобы не растягивались по высоте */
+  z-index: 1000;
+}
+
+/* Синий оттенок для панели игрока, чтобы отличать от врага */
+.player-border {
+  border-color: #00ff41 !important;
+  box-shadow: 0 0 15px rgba(0, 140, 255, 0.2) !important;
+}
+/* Стили заголовков */
+.player-header {
+  color: #00ff41 !important;
+  border-bottom-color: rgba(0, 210, 255, 0.3) !important;
+}
+/* Текст статуса мигает, если твой ход */
+.status-active {
+  color: #00ff41;
+  text-align: center;
+  font-weight: bold;
+  animation: pulse-text 2s infinite;
+}
+
+@keyframes pulse-text {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Анимация линии сканера (общая для обоих состояний) */
+.scanner-line-simple {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: rgba(0, 255, 65, 0.6);
+  box-shadow: 0 0 10px #00ff41;
+  z-index: 5;
+  pointer-events: none;
+  animation: scan-move 4s linear infinite;
+}
+
+@keyframes scan-move {
+  0% {
+    top: -2%;
+  }
+  100% {
+    top: 102%;
+  }
+}
+/* Квадратное игровое поле */
+.battle-screen {
+  position: relative;
+  width: 870px;
+  height: 870px;
+  border: 2px solid #00ff41;
+  background-size: cover;
+  background-position: center;
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+.grid-overlay {
+  display: grid;
+  /* Гарантируем ровно 32 колонки одинакового размера */
+  grid-template-columns: repeat(32, 1fr);
+  grid-template-rows: repeat(32, 1fr);
+
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  /* Убираем любые отступы, которые могут сдвигать сетку */
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+.cell {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background-color: transparent;
+
+  z-index: 1; /* По умолчанию */
+  transition: background-color 0.2s ease;
+}
+/* Когда клетка скрыта туманом войны */
+.cell.hidden {
+  z-index: 50;
+}
+
+/* Если нужно подсветить активный путь */
+
+/* Если путь невалиден (используем атрибут из вашего кода) */
+.cell[data-invalid='true'] {
+  background-color: rgba(255, 0, 0, 0.3);
+}
+.cell:hover {
+  background: rgba(255, 255, 255, 0.1);
+  outline: 1px solid rgba(0, 255, 65, 0.1); /* Тонкий хай-тек контур */
+}
+
+/* 🚀 ПОДСВЕТКА ПУТИ И ПРЕПЯТСТВИЙ */
+.cell.path-active {
+  background-color: rgba(57, 255, 20, 0.3) !important;
+  border: 1px solid rgba(57, 255, 20, 0.5);
+  cursor: pointer;
+}
+
+.obstacle-cell {
+  cursor: not-allowed;
+}
+
+.obstacle-img {
+  filter: drop-shadow(2px 4px 4px rgba(0, 0, 0, 0.5));
+  position: absolute;
+  pointer-events: none; /* Чтобы картинка не мешала кликать по клетке */
+  object-fit: contain;
+  /* Улучшаем центрирование */
+  display: block;
+  /*   z-index: 21; */
+}
+.obstacle-big-img {
+  max-width: none !important;
+  max-height: none !important;
+}
+.waypoint-marker {
+  width: 8px;
+  height: 8px;
+  background: #39ff14;
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 10px #39ff14;
+  z-index: 10;
+}
+
+/* ЮНИТЫ */
+.unit {
+  position: absolute;
+  width: calc(800px / 32);
+  height: calc(800px / 32);
+  /*   z-index: 20; */
+  transition: left 0.12s linear, top 0.12s linear;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+}
+
+.unit.selected {
+  outline: 2px solid #39ff14;
+  box-shadow: 0 0 15px #39ff14;
+  background: rgba(57, 255, 20, 0.2);
+}
+
+.human-sprite {
+  width: 90%;
+  height: 90%;
+  object-fit: contain;
+}
+
+/* HP BAR */
+.hp-bar {
+  width: 120%;
+  height: 4px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid #000;
+  position: absolute;
+  top: -8px;
+}
+
+.hp-fill {
+  height: 100%;
+  background: #2ecc71;
+  transition: width 0.3s ease;
+}
+
+.enemy-hp {
+  background: #e74c3c;
+}
+
+/* ИНТЕРФЕЙС / ПАНЕЛЬ */
+.ui-panel {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.85);
+  padding: 10px 20px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  z-index: 100;
+  border: 1px solid #444;
+  color: white;
+  font-family: monospace;
+}
+
+.turn-info {
+  font-size: 14px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 5px 10px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.ui-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  color: white;
+  white-space: nowrap;
+}
+/* Враг под прицелом */
+.unit.enemy.in-range img {
+  filter: drop-shadow(0 0 10px rgba(255, 0, 0, 0.7));
+  transition: filter 0.3s ease;
+}
+.unit.enemy {
+  filter: drop-shadow(0 0 5px rgba(255, 0, 0, 0.5)); /* Красное для врага */
+}
+/* Визуальный прицел */
+.target-crosshair {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 60px;
+  height: 60px;
+  border: 2px dashed red;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: rotate-crosshair 3s linear infinite;
+  pointer-events: none;
+  z-index: 10;
+}
+
+@keyframes rotate-crosshair {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+/* Выделение счетчика шагов */
+.turn-info b {
+  color: #39ff14;
+  text-shadow: 0 0 5px rgba(57, 255, 20, 0.5);
+  margin-left: 5px;
+}
+.ui-btn.select-self {
+  background: #f1c40f;
+  color: #000;
+}
+.ui-btn.select-self.active {
+  background: #39ff14;
+  box-shadow: 0 0 10px #39ff14;
+}
+.ui-btn.attack {
+  background: #c0392b;
+}
+.ui-btn.end {
+  background: #2980b9;
+}
+
+.ui-btn:disabled {
+  background: #555 !important;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* ЭФФЕКТЫ */
+.unit.locating {
+  filter: brightness(2);
+  transform: scale(1.2);
+}
+
+.unit.locating::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  border: 4px solid #39ff14;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: locate-pulse 0.8s ease-out;
+}
+
+@keyframes locate-pulse {
+  0% {
+    width: 0;
+    height: 0;
+    opacity: 1;
+  }
+  100% {
+    width: 150px;
+    height: 150px;
+    opacity: 0;
+  }
+}
+.cell[data-invalid='true'] {
+  background-color: rgba(255, 0, 0, 0.5) !important;
+  border: 1px solid red !important;
+  cursor: not-allowed;
+} /* Для красоты: когда кнопка атаки доступна, сделаем её ярче */
+.ui-btn.attack:not(:disabled) {
+  background: #ff4d4d;
+  cursor: pointer;
+  box-shadow: 0 0 15px rgba(255, 0, 0, 0.5);
+}
+.battle-popup {
+  position: absolute;
+  pointer-events: none;
+  font-weight: 900;
+  font-family: 'Stalker', sans-serif; /* Или любой жирный шрифт */
+  text-shadow: 2px 2px 0px #000, -1px -1px 0px #000, 1px -1px 0px #000, -1px 1px 0px #000;
+  z-index: 1000;
+  animation: popupFloat 1s ease-out forwards;
+  white-space: nowrap;
+  font-size: 1.2rem;
+}
+
+/* Анимация всплытия и исчезновения */
+@keyframes popupFloat {
+  0% {
+    transform: translateY(0) scale(0.5);
+    opacity: 0;
+  }
+  20% {
+    transform: translateY(-20px) scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-60px) scale(1);
+    opacity: 0;
+  }
+}
+
+/* Цвета по типам */
+.battle-popup.normal {
+  color: #ffffff;
+} /* Белый урон */
+.battle-popup.crit {
+  color: #ffcc00;
+  font-size: 1.5rem;
+} /* Критический урон */
+.battle-popup.miss {
+  color: #aaaaaa;
+} /* Промах */
+.battle-popup.vamp {
+  color: #ff3333;
+} /* Вампиризм (Красный) */
+.battle-popup.heal {
+  color: #44ff44;
+} /* Реген (Ярко-зеленый) */
+.battle-popup.error {
+  color: #ff0000;
+} /* Нет патронов */
+.battle-popup.reload {
+  color: #33ccff;
+} /* Перезарядка (Голубой) */
+.battle-popup.buff {
+  color: #ffff00;
+} /* Позиция */
+
+@keyframes popup-move-up {
+  0% {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -60px);
+    opacity: 0;
+  }
+}
+/* Эффект красной вспышки и тряски при получении урона */
+@keyframes hit-shake {
+  0% {
+    transform: translate(2px, 2px) rotate(0deg);
+    filter: brightness(3) sepia(1) hue-rotate(-50deg);
+  }
+  25% {
+    transform: translate(-2px, -1px) rotate(-2deg);
+  }
+  50% {
+    transform: translate(-3px, 0px) rotate(2deg);
+  }
+  75% {
+    transform: translate(2px, 1px) rotate(-1deg);
+  }
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+    filter: brightness(1);
+  }
+}
+
+.hit-shake {
+  animation: hit-shake 0.3s ease-in-out;
+}
+
+.tracer-line {
+  stroke: #fffb00;
+  stroke-width: 2;
+  /* Первый параметр - длина черты, второй - промежуток. 
+       Сделали их короткими (4px и 2px) */
+  stroke-dasharray: 4, 2;
+  filter: drop-shadow(0 0 5px #ffaa00);
+  opacity: 0.9;
+
+  /* Анимация движения самих пунктиров (эффект летящей пули) */
+  animation: dash-fly 0.5s linear infinite;
+}
+.tracer-line.aim-shot {
+  stroke: #00f2ff; /* Ярко-голубой */
+  stroke-width: 4; /* Сделаем чуть толще для эпичности */
+  filter: drop-shadow(0 0 8px #00a2ff);
+  stroke-dasharray: 10, 5; /* Другой паттерн пунктира */
+}
+@keyframes dash-fly {
+  from {
+    stroke-dashoffset: 10;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.shot-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 100;
+}
+/* Базовый класс для всех картинок-препятствий */
+.obstacle-img-base {
+  position: absolute;
+  object-fit: fill;
+  pointer-events: none;
+  display: none; /* Скрыто по умолчанию, если не якорь */
+  transition: opacity 0.3s ease;
+}
+
+/* Показываем только если это якорь (isAnchor) */
+.obstacle-img-base.anchor {
+  display: block;
+}
+
+/* Специфические размеры для типов */
+.obstacle-woods-img {
+  width: 244%;
+  height: 244%;
+  left: -5%;
+  top: -5%;
+  /* z-index для деревьев задаем в JSX, так как он зависит от Y */
+}
+
+.obstacleсar-img {
+  width: 250%;
+  height: 280%;
+  left: -60%;
+  top: -120%;
+  z-index: 10;
+}
+
+.obstacle-big-img {
+  width: 770%; /* 6 клеток */
+  height: 650%; /* 5 клеток */
+  left: -40%;
+  top: -50%;
+  z-index: 10;
+}
+
+/* Малые объекты и заборы */
+.obstacle-small-img {
+  width: 130%;
+  height: 130%;
+  left: -14%;
+  top: -14%;
+  z-index: 10;
+}
+
+/* Оверлей тумана внутри клетки */
+.fog-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.85);
+  z-index: 51;
+  pointer-events: none;
+  background: radial-gradient(circle, transparent 10%, rgba(0, 0, 0, 0.9) 10%);
+}
+.fog-canvas-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 100;
+  /* mix-blend-mode: multiply; — убираем, если хотим посветлее */
+  transition: background 0.4s ease-out;
+  opacity: 0.95; /* Регулируй общую густоту ночи (0.5 - светлая ночь, 0.9 - темная) */
+}
+/* Если объект в тумане, он прозрачный */
+.hidden-fog {
+  opacity: 0 !important;
+}
+
+/* Состояние игрока в лесу (прозрачность) */
+.unit.player.in-woods {
+  opacity: 0.3;
+}
+
+.unit.player {
+  transition: opacity 0.3s ease, left 0.36s linear, top 0.36s linear;
+  filter: drop-shadow(0 0 5px rgba(0, 255, 0, 0.5));
+}
+
+.enemy-status-wrapper {
+  position: absolute;
+  top: -45px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 14px;
+  z-index: 100;
+  pointer-events: none;
+  text-shadow: 0 0 5px black;
+}
+.fog-overlay {
+  position: absolute;
+  inset: 0; /* Растягивает на всю клетку */
+  background-color: rgba(0, 0, 0, 0.85);
+  z-index: 51;
+  pointer-events: none; /* Чтобы мышь кликала сквозь туман по клетке */
+  transition: opacity 0.3s ease; /* Добавим плавности для красоты */
+}
+.enemy-status-badge {
+  position: absolute;
+  top: -45px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 14px;
+  z-index: 100;
+  pointer-events: none;
+  text-shadow: 0 0 5px black;
+
+  /* Добавим легкую анимацию появления */
+  animation: status-bounce 0.3s ease-out;
+}
+
+@keyframes status-bounce {
+  0% {
+    transform: translateX(-50%) scale(0);
+  }
+  70% {
+    transform: translateX(-50%) scale(1.2);
+  }
+  100% {
+    transform: translateX(-50%) scale(1);
+  }
+}
+@keyframes spin360 {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.melee-spin {
+  animation: spin360 0.4s linear;
+}
+/* 2. САМА ВЕРТИКАЛЬНАЯ ПАНЕЛЬ */
+.ui-panel-container.vertical-layout {
+  width: 220px; /* Фиксированная ширина для левой колонки */
+  min-width: 220px;
+  height: auto;
+  max-height: 100%;
+  background: rgba(0, 20, 0, 0.95);
+  border: 2px solid #00ff41;
+  box-shadow: 0 0 15px rgba(0, 255, 65, 0.2);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  font-family: 'Courier New', monospace;
+}
+
+/* Полосы на экране (эффект ЭЛТ) */
+.pda-screen-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+    linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+  background-size: 100% 2px, 3px 100%;
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* Заголовок панели */
+.ui-panel-header {
+  background: rgba(0, 255, 65, 0.1);
+  border-bottom: 1px solid #00ff41;
+  padding: 8px;
+  text-align: center;
+}
+
+.pda-status {
+  color: #00ff41;
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  text-shadow: 0 0 5px #00ff41;
+}
+
+/* Контент внутри панели */
+.ui-panel-content {
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px; /* Расстояние между блоками инфо и кнопками */
+  z-index: 10;
+}
+
+/* БЛОК СТАТИСТИКИ (AP и AMMO) */
+.info-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.label {
+  color: rgba(0, 255, 65, 0.7);
+  font-size: 11px;
+}
+
+.value {
+  color: #00ff41;
+  font-weight: bold;
+}
+
+.ap-counter {
+  font-size: 16px;
+}
+
+/* Полоски AP */
+.ap-bar-container.vertical-ap {
+  display: flex;
+  gap: 4px;
+  height: 10px;
+  width: 100%;
+  margin: 4px 0;
+}
+
+.ap-segment {
+  flex: 1;
+  background: rgba(0, 255, 65, 0.1);
+  border: 1px solid rgba(0, 255, 65, 0.3);
+  transition: all 0.3s ease;
+}
+
+.ap-segment.active {
+  background: #00ff41;
+  box-shadow: 0 0 8px rgba(0, 255, 65, 0.6);
+}
+
+/* БЛОК КНОПОК ДЕЙСТВИЙ */
+.actions-block.vertical-actions {
+  display: flex;
+  flex-direction: column; /* Кнопки в столбик */
+  gap: 8px;
+}
+
+.pda-btn {
+  background: rgba(0, 255, 65, 0.05);
+  border: 1px solid #00ff41;
+  color: #00ff41;
+  padding: 10px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  text-transform: uppercase;
+  transition: all 0.2s ease;
+  width: 100%;
+  text-align: center;
+}
+
+.pda-btn:hover:not(:disabled) {
+  background: rgba(0, 255, 65, 0.2);
+  box-shadow: 0 0 10px rgba(0, 255, 65, 0.3);
+}
+
+.pda-btn:disabled {
+  border-color: #004411;
+  color: #004411;
+  cursor: not-allowed;
+}
+
+.pda-btn.active {
+  background: #00ff41;
+  color: #000;
+}
+
+.pda-btn.active-mode {
+  background: #00ff41;
+  color: #000;
+  box-shadow: 0 0 15px #00ff41;
+}
+
+/* Кнопка ОГОНЬ (с красным оттенком при наведении) */
+.attack-btn:hover:not(:disabled) {
+  border-color: #ff4141;
+  color: #ff4141;
+  background: rgba(255, 65, 65, 0.1);
+}
+
+/* Кнопка КОНЕЦ ХОДА */
+.end-turn-block {
+  margin-top: 10px;
+  border-top: 1px dashed rgba(0, 255, 65, 0.3);
+  padding-top: 15px;
+}
+
+.end-turn-btn {
+  background: rgba(0, 255, 65, 0.15);
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.intel-header {
+  font-size: 14px;
+  font-weight: bold;
+  text-align: center;
+  border-bottom: 1px solid #00ff41;
+  padding-bottom: 5px;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+
+.intel-avatar-frame {
+  width: 100%;
+  height: 120px;
+  border: 1px solid rgba(0, 255, 65, 0.5);
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+
+.intel-avatar {
+  width: 100%;
+  height: 100%;
+  height: 275px;
+  object-fit: contain;
+  /* filter: sepia(1) hue-rotate(60deg) brightness(1.2); /* Эффект прибора ночного видения */
+}
+
+.intel-stats {
+  font-size: 11px;
+}
+
+.intel-row {
+  margin-bottom: 4px;
+}
+
+.intel-row.main {
+  font-size: 13px;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 0 0 5px #00ff41;
+}
+
+.intel-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* Две колонки */
+  gap: 4px; /* Уменьшил отступ для экономии места */
+  margin-top: 5px;
+  width: 100%; /* Растягиваем на всю ширину панели */
+}
+
+.intel-item {
+  border: 1px solid rgba(0, 255, 65, 0.2);
+  padding: 3px 5px;
+  background: rgba(0, 255, 65, 0.05);
+
+  /* ГЛАВНОЕ: запрещаем перенос строки */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; /* Если текст совсем не влезет, он плавно сократится */
+
+  font-size: 11px; /* Немного уменьшил шрифт для компактности */
+  display: flex;
+  align-items: center;
+}
+
+.intel-divider {
+  border: 0;
+  border-top: 1px solid rgba(0, 255, 65, 0.3);
+  margin: 8px 0;
+}
+
+.green {
+  color: #fff;
+  text-shadow: 0 0 3px #00ff41;
+}
+
+.intel-row.footer {
+  margin-top: 10px;
+  font-size: 9px;
+  opacity: 0.7;
+  text-align: right;
+}
+
+/* Анимация появления */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Сканирующая полоска (опционально) */
+.intel-scanline {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: rgba(0, 255, 65, 0.2);
+  box-shadow: 0 0 10px #00ff41;
+  animation: scan 3s linear infinite;
+}
+
+@keyframes scan {
+  0% {
+    top: 0;
+  }
+  100% {
+    top: 100%;
+  }
+}
+.loot-modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100000;
+}
+
+.loot-window {
+  background: #0a0a0a;
+  border: 2px solid #00ff41;
+  width: 320px;
+  padding: 15px;
+  box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+}
+
+.loot-header {
+  color: #00ff41;
+  border-bottom: 1px solid #00ff41;
+  padding-bottom: 10px;
+  margin-bottom: 15px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.loot-item-card {
+  background: rgba(0, 255, 65, 0.05);
+  border: 1px solid rgba(0, 255, 65, 0.2);
+  margin-bottom: 8px;
+  padding: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.loot-item-card:hover {
+  background: rgba(0, 255, 65, 0.15);
+  border-color: #00ff41;
+}
+
+.take-btn {
+  background: #00ff41;
+  color: #000;
+  border: none;
+  padding: 5px 10px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.loot-icon {
+  position: absolute;
+  top: -25px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 20px;
+  filter: drop-shadow(0 0 5px #00ff41);
+  animation: lootBounce 2s infinite ease-in-out;
+}
+
+@keyframes lootBounce {
+  0%,
+  100% {
+    transform: translate(-50%, 0);
+  }
+  50% {
+    transform: translate(-50%, -5px);
+  }
+}
+/* Контейнер панели победы */
+.victory-panel {
+  /* 1. Позиционируем относительно родителя (.side-intel-container) */
+  position: absolute;
+  top: 0;
+  left: 0;
+
+  /* 2. Растягиваем на всю ширину и высоту родителя */
+  width: 100%;
+  height: 100%;
+
+  /* 3. Центрируем контент внутри (текст и кнопку) */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  /* 4. Стили фона и дизайна */
+  background: rgba(0, 15, 0, 0.98); /* Почти непрозрачный, чтобы скрыть то, что под ним */
+  padding: 20px;
+  box-sizing: border-box; /* Чтобы padding не раздувал панель */
+
+  /* Убираем внешний border, так как он есть у родителя, 
+     либо оставляем для эффекта «вложенности» */
+  border: none;
+
+  z-index: 2000;
+  backdrop-filter: blur(6px);
+  animation: fadeIn 0.4s ease-out;
+
+  /* Эффект сетки как в плейсхолдере, чтобы сохранить стиль */
+  background-image: repeating-linear-gradient(
+    0deg,
+    rgba(0, 255, 65, 0.03) 0px,
+    rgba(0, 255, 65, 0.03) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+}
+
+/* Заголовок "ПОБЕДА" */
+.victory-text {
+  font-size: 22px;
+  font-weight: bold;
+  color: #00ff41;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 25px;
+  text-shadow: 0 0 10px rgba(0, 255, 65, 0.8);
+  text-align: center;
+}
+
+/* Кнопка */
+.finish-battle-btn {
+  width: 80%; /* Чтобы кнопка смотрелась хорошо в узкой панели */
+  background: rgba(0, 255, 65, 0.1);
+  color: #00ff41;
+  border: 1px solid #00ff41;
+  padding: 12px 10px;
+  cursor: pointer;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  font-weight: bold;
+  text-transform: uppercase;
+  transition: all 0.2s ease;
+}
+
+.finish-battle-btn:hover {
+  background: #00ff41;
+  color: #000;
+  box-shadow: 0 0 20px rgba(0, 255, 65, 0.6);
+}
+
+.finish-battle-btn:active {
+  transform: scale(0.95);
+  background: #00cc33;
+}
+
+/* Декоративные уголки (как в старых интерфейсах) */
+.victory-panel::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  width: 10px;
+  height: 10px;
+  border-top: 2px solid #00ff41;
+  border-left: 2px solid #00ff41;
+}
+
+.victory-panel::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 10px;
+  height: 10px;
+  border-bottom: 2px solid #00ff41;
+  border-right: 2px solid #00ff41;
+}
+.pda-btn {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  /* твои существующие стили */
+}
+
+.key-hint {
+  font-size: 9px;
+  background: rgba(0, 255, 65, 0.2);
+  color: #00ff41;
+  padding: 1px 4px;
+  border: 1px solid rgba(0, 255, 65, 0.5);
+  border-radius: 2px;
+  margin-left: 8px;
+  opacity: 0.8;
+  pointer-events: none; /* чтобы не мешало клику */
+  text-shadow: none;
+}
+
+.pda-btn:hover .key-hint {
+  background: #00ff41;
+  color: #000;
+  opacity: 1;
+}
+
+/* Эффект для кнопки "ОГОНЬ", чтобы она мигала при готовности */
+.attack-btn:not(:disabled) {
+  animation: pulse-border 2s infinite;
+}
+
+@keyframes pulse-border {
+  0% {
+    box-shadow: 0 0 2px #00ff41;
+  }
+  50% {
+    box-shadow: 0 0 10px #00ff41;
+  }
+  100% {
+    box-shadow: 0 0 2px #00ff41;
+  }
+}
+@keyframes pulse {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.9);
+    opacity: 0.6;
+  }
+}
+
+@keyframes blink {
+  0% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.2;
+  }
+}
+
+/* Зона поражения гранаты */
+.grenade-zone {
+  width: 9.375%; /* Это радиус 3 клетки (3 * 3.125%) */
+  height: 9.375%;
+  background: radial-gradient(circle, rgba(255, 0, 0, 0.4) 0%, rgba(255, 0, 0, 0) 70%);
+  border: 2px dashed rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  position: absolute;
+  pointer-events: none;
+  z-index: 5;
+  transform: translate(-33%, -33%); /* Центрируем относительно точки броска */
+  animation: pulse-zone 1.5s infinite;
+}
+
+/* Анимация пульсации для опасности */
+@keyframes pulse-zone {
+  0% {
+    transform: translate(-33%, -33%) scale(1);
+    opacity: 0.4;
+  }
+  50% {
+    transform: translate(-33%, -33%) scale(1.1);
+    opacity: 0.6;
+  }
+  100% {
+    transform: translate(-33%, -33%) scale(1);
+    opacity: 0.4;
+  }
+}
+
+/* Стили для летящей гранаты */
+.grenade-fly {
+  filter: drop-shadow(0 5px 5px rgba(0, 0, 0, 0.5));
+  pointer-events: none;
+}
+/* Эффект тряски */
+.arena-shake {
+  animation: shake-animation 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+  transform: translate3d(0, 0, 0);
+}
+
+@keyframes shake-animation {
+  10%,
+  90% {
+    transform: translate3d(-2px, 0, 0);
+  }
+  20%,
+  80% {
+    transform: translate3d(4px, 0, 0);
+  }
+  30%,
+  50%,
+  70% {
+    transform: translate3d(-6px, 0, 0);
+  }
+  40%,
+  60% {
+    transform: translate3d(6px, 0, 0);
+  }
+}
+
+/* Пульсация зоны гранаты */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.3;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.3;
+  }
+}
+.explosion-flash {
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  margin-left: -50px; /* Центрирование */
+  margin-top: -50px;
+  pointer-events: none;
+  z-index: 100;
+}
+
+/* Вспышка в центре */
+.explosion-flash::before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, white 0%, orange 30%, red 70%, transparent 100%);
+  border-radius: 50%;
+  animation: flash-anim 0.4s ease-out forwards;
+}
+
+/* Ударная волна */
+.explosion-flash::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  border: 4px solid rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: shockwave-anim 0.5s ease-out forwards;
+}
+
+@keyframes flash-anim {
+  0% {
+    transform: scale(0.1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.5);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+@keyframes shockwave-anim {
+  0% {
+    width: 0;
+    height: 0;
+    opacity: 1;
+  }
+  100% {
+    width: 250px;
+    height: 250px;
+    opacity: 0;
+    border-width: 1px;
+  }
+}
+.danger-zone {
+  position: absolute;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Центрирование относительно центра клетки */
+  transform: translate(-35%, -35%);
+}
+
+.red-zone-pulse {
+  transform: translate(0, 0); /* Красная зона ровно в клетке, ей не нужно смещение */
+  animation: red-pulse-anim 0.8s infinite ease-in-out;
+  border: 2px solid red;
+  background-color: rgba(255, 0, 0, 0.4);
+}
+
+@keyframes red-pulse-anim {
+  0% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+}
+
+/* Блок скиллов вылетает вправо */
+.external-skills-sidebar {
+  position: absolute;
+  left: 308px; /* Отступ от основной панели */
+  top: -2px;
+  width: 180px; /* Увеличил ширину, чтобы названия не теснились */
+  background: rgba(0, 10, 0, 0.95);
+  border: 2px solid #00ff41;
+  padding: 12px; /* Больше внутренних отступов */
+  display: flex;
+  flex-direction: column;
+  gap: 10px; /* Больше расстояние между скиллами */
+  box-shadow: 0 0 20px rgba(0, 255, 65, 0.25);
+  z-index: 1001;
+  animation: slideRight 0.3s ease-out;
+}
+
+.skills-sidebar-title {
+  font-size: 14px; /* Увеличено */
+  font-weight: bold;
+  letter-spacing: 1px;
+  color: #00ff41; /* Сделал ярче для акцента */
+  border-bottom: 1px solid #00ff41;
+  margin-bottom: 6px;
+  padding-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.sidebar-skill-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(0, 255, 65, 0.08);
+  padding: 8px; /* Больше кликабельная зона */
+  border: 1px solid rgba(0, 255, 65, 0.3);
+  border-left: 4px solid #00ff41; /* Акцентная полоса слева */
+  transition: all 0.2s ease;
+}
+
+.sidebar-skill-item.is-cd {
+  opacity: 0.9;
+  border-left-color: #ff4d4d;
+  background: rgba(255, 77, 77, 0.05);
+}
+
+.skill-ico {
+  font-size: 20px; /* Укрупненные иконки */
+  min-width: 24px;
+  text-align: center;
+}
+
+.skill-det {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.skill-nm {
+  font-size: 12px; /* Основное название теперь читаемо */
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.skill-cd-st {
+  font-size: 11px; /* Статус КД стал крупнее */
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+/* Цвет для READY (не в КД) */
+:not(.is-cd).sidebar-skill-item .skill-cd-st {
+  color: #00ff41;
+  text-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
+}
+
+/* Цвет для КД */
+.is-cd .skill-cd-st {
+  color: #ff4d4d;
+}
+
+@keyframes slideRight {
+  from {
+    opacity: 0;
+    transform: translateX(-15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
