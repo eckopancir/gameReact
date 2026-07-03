@@ -633,17 +633,18 @@ button:hover {
 }
 
 .arena-container {
-  background-size: 109% 94%;
+  background-size: cover;
   background-repeat: no-repeat;
-  background-position: center top;
+  background-position: center;
 
   position: fixed;
-  top: -20%;
-  left: 56%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 
-  width: 900px;
-  height: 870px;
-  z-index: 9;
+  width: min(900px, calc(100vw - 40px));
+  height: min(870px, calc(100vh - 40px));
+  z-index: 10;
 }
 
 .arena {

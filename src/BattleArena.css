@@ -7,25 +7,25 @@
   height: 100vh;
   background: rgba(0, 0, 0, 0.8);
   display: flex;
-  flex-direction: row; /* Выстраиваем Панель -> Арену -> Стек в ряд */
+  flex-direction: row;
   align-items: flex-start;
   justify-content: center;
-  gap: 10px;
-  padding: 10px;
+  gap: clamp(4px, 10px, 16px);
+  padding: clamp(4px, 10px, 16px);
 
-  z-index: 9999;
+  z-index: 100;
 }
 /* ГЛАВНОЕ ИЗМЕНЕНИЕ: Контейнер теперь сам является визуальной панелью */
 .side-intel-container {
-  width: 302px;
-  height: 400px;
+  width: min(302px, calc(30vw - 20px));
+  height: min(400px, calc(50vh - 30px));
   display: flex;
   flex-direction: column;
   position: relative;
   overflow: visible;
   background: rgba(0, 15, 0, 0.95);
-  border: 2px solid #00ff41;
-  box-shadow: 0 0 15px rgba(0, 255, 65, 0.2);
+  border: 2px solid #39ff14;
+  box-shadow: 0 0 15px rgba(57, 255, 20, 0.2);
   box-sizing: border-box;
 }
 
@@ -37,11 +37,11 @@
   padding: 10px;
   box-sizing: border-box;
   font-family: 'Courier New', monospace;
-  color: #00ff41;
+  color: #39ff14;
   position: absolute;
   background: rgba(10, 35, 10, 0.95);
-  border: 0px solid #00ff41;
-  box-shadow: 0 0 15px rgba(0, 255, 65, 0.3);
+  border: 0px solid #39ff14;
+  box-shadow: 0 0 15px rgba(57, 255, 20, 0.3);
   z-index: 200;
   pointer-events: none;
   transition: all 0.4s ease; /* анимация появления данных в панеле */
@@ -55,7 +55,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  color: #00ff41;
+  color: #39ff14;
   font-family: 'Courier New', monospace;
   font-size: 14px;
   letter-spacing: 2px;
@@ -63,8 +63,8 @@
   /* Убираем border здесь, так как он теперь на контейнере */
   background: repeating-linear-gradient(
     0deg,
-    rgba(0, 255, 65, 0.03) 0px,
-    rgba(0, 255, 65, 0.03) 1px,
+    rgba(57, 255, 20, 0.03) 0px,
+    rgba(57, 255, 20, 0.03) 1px,
     transparent 1px,
     transparent 2px
   );
@@ -80,17 +80,17 @@
 
 /* Синий оттенок для панели игрока, чтобы отличать от врага */
 .player-border {
-  border-color: #00ff41 !important;
+  border-color: #39ff14 !important;
   box-shadow: 0 0 15px rgba(0, 140, 255, 0.2) !important;
 }
 /* Стили заголовков */
 .player-header {
-  color: #00ff41 !important;
+  color: #39ff14 !important;
   border-bottom-color: rgba(0, 210, 255, 0.3) !important;
 }
 /* Текст статуса мигает, если твой ход */
 .status-active {
-  color: #00ff41;
+  color: #39ff14;
   text-align: center;
   font-weight: bold;
   animation: pulse-text 2s infinite;
@@ -113,8 +113,8 @@
   left: 0;
   width: 100%;
   height: 2px;
-  background: rgba(0, 255, 65, 0.6);
-  box-shadow: 0 0 10px #00ff41;
+  background: rgba(57, 255, 20, 0.6);
+  box-shadow: 0 0 10px #39ff14;
   z-index: 5;
   pointer-events: none;
   animation: scan-move 4s linear infinite;
@@ -131,13 +131,14 @@
 /* Квадратное игровое поле */
 .battle-screen {
   position: relative;
-  width: 870px;
-  height: 870px;
-  border: 2px solid #00ff41;
+  width: min(870px, calc(100vw - 560px));
+  aspect-ratio: 1 / 1;
+  border: 2px solid #39ff14;
   background-size: cover;
   background-position: center;
   box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
   overflow: hidden;
+  flex-shrink: 1;
 }
 .grid-overlay {
   display: grid;
@@ -183,7 +184,7 @@
 }
 .cell:hover {
   background: rgba(255, 255, 255, 0.1);
-  outline: 1px solid rgba(0, 255, 65, 0.1); /* Тонкий хай-тек контур */
+  outline: 1px solid rgba(57, 255, 20, 0.1); /* Тонкий хай-тек контур */
 }
 
 /* 🚀 ПОДСВЕТКА ПУТИ И ПРЕПЯТСТВИЙ */
@@ -673,18 +674,19 @@
 }
 /* 2. САМА ВЕРТИКАЛЬНАЯ ПАНЕЛЬ */
 .ui-panel-container.vertical-layout {
-  width: 220px; /* Фиксированная ширина для левой колонки */
-  min-width: 220px;
+  width: clamp(180px, 220px, 25vw);
+  min-width: 180px;
   height: auto;
   max-height: 100%;
   background: rgba(0, 20, 0, 0.95);
-  border: 2px solid #00ff41;
-  box-shadow: 0 0 15px rgba(0, 255, 65, 0.2);
+  border: 2px solid #39ff14;
+  box-shadow: 0 0 15px rgba(57, 255, 20, 0.2);
   display: flex;
   flex-direction: column;
   position: relative;
   overflow: hidden;
   font-family: 'Courier New', monospace;
+  flex-shrink: 0;
 }
 
 /* Полосы на экране (эффект ЭЛТ) */
@@ -703,18 +705,18 @@
 
 /* Заголовок панели */
 .ui-panel-header {
-  background: rgba(0, 255, 65, 0.1);
-  border-bottom: 1px solid #00ff41;
+  background: rgba(57, 255, 20, 0.1);
+  border-bottom: 1px solid #39ff14;
   padding: 8px;
   text-align: center;
 }
 
 .pda-status {
-  color: #00ff41;
+  color: #39ff14;
   font-size: 12px;
   font-weight: bold;
   letter-spacing: 2px;
-  text-shadow: 0 0 5px #00ff41;
+  text-shadow: 0 0 5px #39ff14;
 }
 
 /* Контент внутри панели */
@@ -740,12 +742,12 @@
 }
 
 .label {
-  color: rgba(0, 255, 65, 0.7);
+  color: rgba(57, 255, 20, 0.7);
   font-size: 11px;
 }
 
 .value {
-  color: #00ff41;
+  color: #39ff14;
   font-weight: bold;
 }
 
@@ -764,14 +766,14 @@
 
 .ap-segment {
   flex: 1;
-  background: rgba(0, 255, 65, 0.1);
-  border: 1px solid rgba(0, 255, 65, 0.3);
+  background: rgba(57, 255, 20, 0.1);
+  border: 1px solid rgba(57, 255, 20, 0.3);
   transition: all 0.3s ease;
 }
 
 .ap-segment.active {
-  background: #00ff41;
-  box-shadow: 0 0 8px rgba(0, 255, 65, 0.6);
+  background: #39ff14;
+  box-shadow: 0 0 8px rgba(57, 255, 20, 0.6);
 }
 
 /* БЛОК КНОПОК ДЕЙСТВИЙ */
@@ -782,9 +784,9 @@
 }
 
 .pda-btn {
-  background: rgba(0, 255, 65, 0.05);
-  border: 1px solid #00ff41;
-  color: #00ff41;
+  background: rgba(57, 255, 20, 0.05);
+  border: 1px solid #39ff14;
+  color: #39ff14;
   padding: 10px;
   cursor: pointer;
   font-family: inherit;
@@ -796,8 +798,8 @@
 }
 
 .pda-btn:hover:not(:disabled) {
-  background: rgba(0, 255, 65, 0.2);
-  box-shadow: 0 0 10px rgba(0, 255, 65, 0.3);
+  background: rgba(57, 255, 20, 0.2);
+  box-shadow: 0 0 10px rgba(57, 255, 20, 0.3);
 }
 
 .pda-btn:disabled {
@@ -807,14 +809,14 @@
 }
 
 .pda-btn.active {
-  background: #00ff41;
+  background: #39ff14;
   color: #000;
 }
 
 .pda-btn.active-mode {
-  background: #00ff41;
+  background: #39ff14;
   color: #000;
-  box-shadow: 0 0 15px #00ff41;
+  box-shadow: 0 0 15px #39ff14;
 }
 
 /* Кнопка ОГОНЬ (с красным оттенком при наведении) */
@@ -827,12 +829,12 @@
 /* Кнопка КОНЕЦ ХОДА */
 .end-turn-block {
   margin-top: 10px;
-  border-top: 1px dashed rgba(0, 255, 65, 0.3);
+  border-top: 1px dashed rgba(57, 255, 20, 0.3);
   padding-top: 15px;
 }
 
 .end-turn-btn {
-  background: rgba(0, 255, 65, 0.15);
+  background: rgba(57, 255, 20, 0.15);
   font-weight: bold;
   letter-spacing: 1px;
 }
@@ -841,7 +843,7 @@
   font-size: 14px;
   font-weight: bold;
   text-align: center;
-  border-bottom: 1px solid #00ff41;
+  border-bottom: 1px solid #39ff14;
   padding-bottom: 5px;
   margin-bottom: 10px;
   text-transform: uppercase;
@@ -850,7 +852,7 @@
 .intel-avatar-frame {
   width: 100%;
   height: 120px;
-  border: 1px solid rgba(0, 255, 65, 0.5);
+  border: 1px solid rgba(57, 255, 20, 0.5);
   background: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
@@ -879,7 +881,7 @@
   font-size: 13px;
   font-weight: bold;
   color: #fff;
-  text-shadow: 0 0 5px #00ff41;
+  text-shadow: 0 0 5px #39ff14;
 }
 
 .intel-grid {
@@ -891,9 +893,9 @@
 }
 
 .intel-item {
-  border: 1px solid rgba(0, 255, 65, 0.2);
+  border: 1px solid rgba(57, 255, 20, 0.2);
   padding: 3px 5px;
-  background: rgba(0, 255, 65, 0.05);
+  background: rgba(57, 255, 20, 0.05);
 
   /* ГЛАВНОЕ: запрещаем перенос строки */
   white-space: nowrap;
@@ -907,13 +909,13 @@
 
 .intel-divider {
   border: 0;
-  border-top: 1px solid rgba(0, 255, 65, 0.3);
+  border-top: 1px solid rgba(57, 255, 20, 0.3);
   margin: 8px 0;
 }
 
 .green {
   color: #fff;
-  text-shadow: 0 0 3px #00ff41;
+  text-shadow: 0 0 3px #39ff14;
 }
 
 .intel-row.footer {
@@ -942,8 +944,8 @@
   left: 0;
   width: 100%;
   height: 2px;
-  background: rgba(0, 255, 65, 0.2);
-  box-shadow: 0 0 10px #00ff41;
+  background: rgba(57, 255, 20, 0.2);
+  box-shadow: 0 0 10px #39ff14;
   animation: scan 3s linear infinite;
 }
 
@@ -970,15 +972,15 @@
 
 .loot-window {
   background: #0a0a0a;
-  border: 2px solid #00ff41;
+  border: 2px solid #39ff14;
   width: 320px;
   padding: 15px;
-  box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+  box-shadow: 0 0 20px rgba(57, 255, 20, 0.3);
 }
 
 .loot-header {
-  color: #00ff41;
-  border-bottom: 1px solid #00ff41;
+  color: #39ff14;
+  border-bottom: 1px solid #39ff14;
   padding-bottom: 10px;
   margin-bottom: 15px;
   display: flex;
@@ -986,8 +988,8 @@
 }
 
 .loot-item-card {
-  background: rgba(0, 255, 65, 0.05);
-  border: 1px solid rgba(0, 255, 65, 0.2);
+  background: rgba(57, 255, 20, 0.05);
+  border: 1px solid rgba(57, 255, 20, 0.2);
   margin-bottom: 8px;
   padding: 10px;
   display: flex;
@@ -998,12 +1000,12 @@
 }
 
 .loot-item-card:hover {
-  background: rgba(0, 255, 65, 0.15);
-  border-color: #00ff41;
+  background: rgba(57, 255, 20, 0.15);
+  border-color: #39ff14;
 }
 
 .take-btn {
-  background: #00ff41;
+  background: #39ff14;
   color: #000;
   border: none;
   padding: 5px 10px;
@@ -1017,7 +1019,7 @@
   left: 50%;
   transform: translateX(-50%);
   font-size: 20px;
-  filter: drop-shadow(0 0 5px #00ff41);
+  filter: drop-shadow(0 0 5px #39ff14);
   animation: lootBounce 2s infinite ease-in-out;
 }
 
@@ -1063,8 +1065,8 @@
   /* Эффект сетки как в плейсхолдере, чтобы сохранить стиль */
   background-image: repeating-linear-gradient(
     0deg,
-    rgba(0, 255, 65, 0.03) 0px,
-    rgba(0, 255, 65, 0.03) 1px,
+    rgba(57, 255, 20, 0.03) 0px,
+    rgba(57, 255, 20, 0.03) 1px,
     transparent 1px,
     transparent 2px
   );
@@ -1074,20 +1076,20 @@
 .victory-text {
   font-size: 22px;
   font-weight: bold;
-  color: #00ff41;
+  color: #39ff14;
   text-transform: uppercase;
   letter-spacing: 2px;
   margin-bottom: 25px;
-  text-shadow: 0 0 10px rgba(0, 255, 65, 0.8);
+  text-shadow: 0 0 10px rgba(57, 255, 20, 0.8);
   text-align: center;
 }
 
 /* Кнопка */
 .finish-battle-btn {
   width: 80%; /* Чтобы кнопка смотрелась хорошо в узкой панели */
-  background: rgba(0, 255, 65, 0.1);
-  color: #00ff41;
-  border: 1px solid #00ff41;
+  background: rgba(57, 255, 20, 0.1);
+  color: #39ff14;
+  border: 1px solid #39ff14;
   padding: 12px 10px;
   cursor: pointer;
   font-family: 'Courier New', monospace;
@@ -1098,9 +1100,9 @@
 }
 
 .finish-battle-btn:hover {
-  background: #00ff41;
+  background: #39ff14;
   color: #000;
-  box-shadow: 0 0 20px rgba(0, 255, 65, 0.6);
+  box-shadow: 0 0 20px rgba(57, 255, 20, 0.6);
 }
 
 .finish-battle-btn:active {
@@ -1116,8 +1118,8 @@
   left: -2px;
   width: 10px;
   height: 10px;
-  border-top: 2px solid #00ff41;
-  border-left: 2px solid #00ff41;
+  border-top: 2px solid #39ff14;
+  border-left: 2px solid #39ff14;
 }
 
 .victory-panel::after {
@@ -1127,8 +1129,8 @@
   right: -2px;
   width: 10px;
   height: 10px;
-  border-bottom: 2px solid #00ff41;
-  border-right: 2px solid #00ff41;
+  border-bottom: 2px solid #39ff14;
+  border-right: 2px solid #39ff14;
 }
 .pda-btn {
   position: relative;
@@ -1140,10 +1142,10 @@
 
 .key-hint {
   font-size: 9px;
-  background: rgba(0, 255, 65, 0.2);
-  color: #00ff41;
+  background: rgba(57, 255, 20, 0.2);
+  color: #39ff14;
   padding: 1px 4px;
-  border: 1px solid rgba(0, 255, 65, 0.5);
+  border: 1px solid rgba(57, 255, 20, 0.5);
   border-radius: 2px;
   margin-left: 8px;
   opacity: 0.8;
@@ -1152,7 +1154,7 @@
 }
 
 .pda-btn:hover .key-hint {
-  background: #00ff41;
+  background: #39ff14;
   color: #000;
   opacity: 1;
 }
@@ -1164,13 +1166,13 @@
 
 @keyframes pulse-border {
   0% {
-    box-shadow: 0 0 2px #00ff41;
+    box-shadow: 0 0 2px #39ff14;
   }
   50% {
-    box-shadow: 0 0 10px #00ff41;
+    box-shadow: 0 0 10px #39ff14;
   }
   100% {
-    box-shadow: 0 0 2px #00ff41;
+    box-shadow: 0 0 2px #39ff14;
   }
 }
 @keyframes pulse {
@@ -1378,12 +1380,12 @@
   top: -2px;
   width: 180px; /* Увеличил ширину, чтобы названия не теснились */
   background: rgba(0, 10, 0, 0.95);
-  border: 2px solid #00ff41;
+  border: 2px solid #39ff14;
   padding: 12px; /* Больше внутренних отступов */
   display: flex;
   flex-direction: column;
   gap: 10px; /* Больше расстояние между скиллами */
-  box-shadow: 0 0 20px rgba(0, 255, 65, 0.25);
+  box-shadow: 0 0 20px rgba(57, 255, 20, 0.25);
   z-index: 1001;
   animation: slideRight 0.3s ease-out;
 }
@@ -1392,8 +1394,8 @@
   font-size: 14px; /* Увеличено */
   font-weight: bold;
   letter-spacing: 1px;
-  color: #00ff41; /* Сделал ярче для акцента */
-  border-bottom: 1px solid #00ff41;
+  color: #39ff14; /* Сделал ярче для акцента */
+  border-bottom: 1px solid #39ff14;
   margin-bottom: 6px;
   padding-bottom: 4px;
   text-transform: uppercase;
@@ -1403,10 +1405,10 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  background: rgba(0, 255, 65, 0.08);
+  background: rgba(57, 255, 20, 0.08);
   padding: 8px; /* Больше кликабельная зона */
-  border: 1px solid rgba(0, 255, 65, 0.3);
-  border-left: 4px solid #00ff41; /* Акцентная полоса слева */
+  border: 1px solid rgba(57, 255, 20, 0.3);
+  border-left: 4px solid #39ff14; /* Акцентная полоса слева */
   transition: all 0.2s ease;
 }
 
@@ -1444,8 +1446,8 @@
 
 /* Цвет для READY (не в КД) */
 :not(.is-cd).sidebar-skill-item .skill-cd-st {
-  color: #00ff41;
-  text-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
+  color: #39ff14;
+  text-shadow: 0 0 5px rgba(57, 255, 20, 0.5);
 }
 
 /* Цвет для КД */
