@@ -7,8 +7,8 @@ body {
   display: flex;
   justify-content: flex-start;
   /* прижать к правой стороне */
-  align-items: center;
-  /* по вертикали оставить по центру */
+  align-items: flex-start;
+  /* по вертикали прижать к верху */
   height: 100vh;
   margin: 0;
   padding-left: 20px;
@@ -33,21 +33,7 @@ body {
   flex: 1 1 555px;
 } */
 
-#battle-animation {
-  height: 50px;
-  padding: 30px;
-  text-align: center;
-  border-bottom: 1px solid #bbb;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
 
-#main-section {
-  display: flex;
-  gap: 10px;
-  margin-top: 10px;
-}
 
 /* #controls {
   flex: 1;
@@ -1422,215 +1408,7 @@ button:hover {
 }
 
 /* Общие стили для контейнера очереди */
-#queue-container {
-  width: 100%;
-  margin-top: -450px;
-  background-color: rgba(15, 15, 15, 0.7);
-  /* Более темный фон */
-  border-bottom: 1px solid #333;
-  padding: 5px 20px;
-  box-sizing: border-box;
-  /* Усиленная тень для большей глубины */
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.6);
-}
 
-.expedition-queue-title {
-  margin: 0 0 10px 0;
-  color: #fff;
-  font-size: 1.3em;
-  font-weight: 700;
-  text-shadow: 0 0 5px #00b8d4;
-  /* Небольшое свечение заголовка */
-  user-select: none;
-}
-
-/* --- Стили для витрины экспедиций (App.jsx) --- */
-
-.queue-list {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-/* 1. КАРТОЧКА: Новые размеры и фон */
-.queue-item {
-  /* * Ширина: Уменьшена на ~25% (было 250px, стало 180px)
-   * Высота: Увеличена на ~30% (было 120px, стало 155px) 
-   */
-  width: 219px;
-  height: 210px;
-  border: 1px solid #444;
-  border-radius: 10px;
-  padding: 0;
-  /* Убираем паддинг, чтобы изображение заполняло всю область */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
-  display: flex;
-  flex-direction: column;
-  /* Элементы внутри будут располагаться вертикально */
-  justify-content: flex-end;
-  /* Весь контент прижимаем к низу */
-  position: relative;
-  overflow: hidden;
-  cursor: pointer;
-  transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
-}
-
-.queue-item.empty {
-  /* Стили для пустой карточки остаются прежними или адаптируются */
-  background-color: #1a1a1a;
-  border-style: dashed;
-  justify-content: center;
-  align-items: center;
-  color: #666;
-}
-
-/* 2. ИЗОБРАЖЕНИЕ ФОНА */
-.queue-item img {
-  /* Располагаем изображение абсолютно и растягиваем на всю карточку */
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  /* Заполнение всего фона */
-  z-index: 1;
-  /* Под текстовым слоем */
-  opacity: 0.8;
-  /* Немного затемняем для читаемости текста */
-}
-
-/* 3. ИНФОРМАЦИОННЫЙ БЛОК ПОВЕРХ КАРТИНКИ */
-.queue-info {
-  position: absolute;
-  /* <-- Новое: Абсолютное позиционирование */
-  left: 0;
-  bottom: 23px;
-  z-index: 2;
-  /* Выше изображения */
-  padding: 8px;
-  /* Добавляем внутренний отступ для текста */
-  background: linear-gradient(to top,
-      rgba(0, 0, 0, 0.85),
-      rgba(0, 0, 0, 0));
-  /* Градиент для читаемости */
-  width: 100%;
-  color: #fff;
-  /* Белый текст для контраста */
-  font-size: 12px;
-  line-height: 1;
-  height: 170px;
-  /* Установите желаемую высоту (например, 140px), чтобы поднять текст выше */
-}
-
-.queue-info h4 {
-  margin: 0 0 22px 0;
-  font-size: 14px;
-  color: #ffd700;
-  /* Золотой заголовок */
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* 4. КНОПКА ЗАПУСКА */
-.btn-start-queue {
-  /* Кнопка остается сверху всего */
-  position: absolute;
-  z-index: 3;
-  top: 182px;
-  /* Переместили кнопку вверх */
-  right: 0px;
-  padding: 4px 8px;
-  font-size: 12px;
-  background-color: #38a169;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.btn-start-queue:hover {
-  background-color: #2f855a;
-}
-
-.queue-item:hover {
-  /* Увеличиваем карточку на 5% */
-  transform: scale(1.05);
-
-  /* Делаем тень более выраженной для эффекта "подъема" */
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.9);
-
-  /* Немного смещаем, чтобы было ощущение, что она "выдвигается" */
-  z-index: 10;
-}
-
-.btn-start-queue.disabled {
-  pointer-events: none;
-  /* Отключаем события мыши */
-  background-color: #555;
-  /* Серый цвет фона (пример) */
-  color: #aaa;
-  /* Серый цвет текста (пример) */
-  border: 1px solid #444;
-  cursor: not-allowed;
-  opacity: 0.6;
-  /* Добавляем небольшую прозрачность */
-}
-
-/* Опционально: стили для таймера */
-.timer-display.active {
-  color: orange;
-  font-weight: bold;
-}
-
-.timer-display.finished {
-  color: rgb(239, 245, 239);
-}
-
-/* ИСПРАВЛЕННЫЕ СТИЛИ ДЛЯ КРЕСТИКА */
-.btn-remove-queue-item {
-  position: absolute;
-  top: 5px;
-  right: 17px;
-
-  /* Убираем все визуальные элементы кнопки: */
-  background: transparent;
-  /* Прозрачный фон */
-  color: #fff;
-  /* Цвет самого крестика, если фон карточки темный */
-  text-shadow: 0 0 3px rgba(0, 0, 0, 0.7);
-  /* Добавим легкую тень для контраста */
-
-  border: none;
-  padding: 0;
-  margin: 0;
-  font-size: 16px;
-  /* Размер крестика */
-  font-weight: bold;
-  cursor: pointer;
-  z-index: 10;
-
-  /* Делаем область клика небольшой и аккуратной */
-  width: 20px;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
-  /* Для центрирования символа */
-}
-
-.btn-remove-queue-item:hover {
-  /* При наведении можно изменить цвет или добавить тень, чтобы крестик выделялся */
-  opacity: 0.7;
-}
-
-.btn-remove-queue-item:disabled {
-  cursor: not-allowed;
-  opacity: 0.3;
-  /* Делаем его бледным, когда он заблокирован */
-}
 
 .refresh-timer {
   /* 1. Белый цвет текста */

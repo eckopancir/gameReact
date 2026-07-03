@@ -7,6 +7,7 @@ import BattleArena from './BattleArena';
 import ExpeditionSelector from './ExpeditionSelector';
 import InventoryModal from './InventoryModal';
 import CustomizationModal from './CustomizationModal';
+import QueueList from './QueueList';
 import { items, generateItem } from './items';
 import bl2 from './assets/Images/battle/bl2.png';
 
@@ -80,7 +81,7 @@ function AppContent() {
     enemyCurrentHp, setEnemyCurrentHp, playerTotalDamage, setPlayerTotalDamage,
     enemyTotalDamage, setEnemyTotalDamage,
     enemy, setEnemy, player, inventory, setInventory,
-    currentPage, battleText,
+    currentPage,
     hoverItem, setHoverItem, hoverPosition,
     filterSlot, filterStat,
     zonesModalOpen, readyZone, closingZone,
@@ -121,101 +122,19 @@ function AppContent() {
 
   return (
     <>
-      <div id="queue-container">
-        <div className="expedition-queue-display">
-          <h3 className="expedition-queue-title">
-            🧭 Очередь Экспедиций ({activeEncountersQueue.length}/8)
-          </h3>
-          <div className="queue-list">
-            {Array(8).fill(null).map((_, index) => {
-              const expItem = activeEncountersQueue[index];
-              const isQueued = !!expItem;
-              const isCurrentExpedition = isTraveling || isFighting;
-              const isLaunchable = isQueued && !isCurrentExpedition;
-              let remainingSeconds = 0;
-              let isTimerActiveForDisplay = false;
-              let isTimerFinished = false;
-              let mainImage = null;
-              if (expItem) {
-                mainImage = expItem.encounters.length > 0 ? expItem.encounters[0].image : null;
-                const wasTimerStarted = expItem.timerStartTime !== null;
-                if (expItem.isTimerActive) {
-                  const now = Date.now();
-                  const elapsedSeconds = Math.floor((now - expItem.timerStartTime) / 1000);
-                  remainingSeconds = Math.max(0, expItem.timerDuration - elapsedSeconds);
-                  if (remainingSeconds > 0) { isTimerActiveForDisplay = true; }
-                  else { isTimerFinished = true; remainingSeconds = 0; }
-                } else {
-                  if (wasTimerStarted) { isTimerFinished = true; remainingSeconds = 0; }
-                  else { isTimerFinished = false; remainingSeconds = expItem.timerDuration; }
-                }
-              }
-              let calculatedDifficulty = 0;
-              if (expItem) {
-                const ENCOUNTER_BASE_DIFFICULTY = expItem.encounters[0].difficulty;
-                let baseTotalDifficulty = expItem.baseDifficulty + ENCOUNTER_BASE_DIFFICULTY;
-                let difficultyDecrease = 0;
-                if (!expItem.isTimerActive && !isTimerFinished) {
-                  const minutesInQueue = Math.floor((Date.now() - expItem.timeAdded) / (1000 * 60));
-                  difficultyDecrease = minutesInQueue;
-                  calculatedDifficulty = Math.max(1, baseTotalDifficulty - difficultyDecrease);
-                } else { calculatedDifficulty = baseTotalDifficulty; }
-              }
-              const isButtonEnabled = isLaunchable && isTimerFinished;
-              let dropQualityColor = 'white';
-              if (expItem?.drop?.quality) {
-                const qualityTier = QUALITY_TIERS.find((t) => t.name === expItem.drop.quality);
-                if (qualityTier) { dropQualityColor = qualityTier.color; }
-              }
-              return (
-                <div
-                  key={index}
-                  className={`queue-item ${isQueued ? 'queued' : 'empty'}`}
-                  onClick={() => {
-                    if (isQueued && !expItem.isTimerActive && !isTimerFinished && !isCurrentExpedition) {
-                      startQueueItemTimer(index);
-                    }
-                  }}
-                  style={{
-                    cursor: isQueued && !expItem.isTimerActive && !isTimerFinished && !isCurrentExpedition && !isAnyTimerCurrentlyActive ? 'pointer' : 'default',
-                  }}>
-                  {isQueued ? (
-                    <>
-                      {expItem.encounters.length > 0 && (
-                        <div className="queue-info">
-                          <button
-                            className="btn-remove-queue-item"
-                            disabled={isCurrentExpedition}
-                            onClick={(e) => { e.stopPropagation(); if (!isCurrentExpedition) { removeEncounterFromQueue(index); } }}>
-                            ❌
-                          </button>
-                          <h4>{expItem.encounters[0].name}</h4>
-                          <p>💥 Враги: {expItem.encounters[0].factions.join(', ')}</p>
-                          <p>⚔️ Боев: {expItem.encounters[0].minBattles}</p>
-                          <p> ⏱️ Время: {expItem.encounters[0].time} сек.</p>
-                          <p>💀 Сложность: {calculatedDifficulty.toFixed(0)}%</p>
-                          <p className={`timer-display ${isTimerActiveForDisplay ? 'active' : 'finished'}`}>⏳ Таймер: {formatTime(remainingSeconds)}</p>
-                          <p>💰 Лут: {expItem.drop?.rarity ? <span> {expItem.drop.rarity}</span> : <span> Случайный</span>}
-                            {expItem.drop?.quality && <span style={{ color: dropQualityColor }}> + {expItem.drop.quality}</span>}
-                          </p>
-                        </div>
-                      )}
-                      {mainImage && <img src={mainImage} alt={expItem.zone.name} />}
-                      {isLaunchable && (
-                        <button className={`btn-start-queue ${isButtonEnabled ? '' : 'disabled'}`} disabled={!isButtonEnabled} onClick={() => { if (isButtonEnabled) { startActiveExpedition(index); playSound(startbattle); } }}>
-                          В БОЙ
-                        </button>
-                      )}
-                    </>
-                  ) : (
-                    <div>СЛОТ {index + 1}</div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
+      <QueueList
+        activeEncountersQueue={activeEncountersQueue}
+        isTraveling={isTraveling}
+        isFighting={isFighting}
+        isAnyTimerCurrentlyActive={isAnyTimerCurrentlyActive}
+        QUALITY_TIERS={QUALITY_TIERS}
+        formatTime={formatTime}
+        playSound={playSound}
+        startbattle={startbattle}
+        startQueueItemTimer={startQueueItemTimer}
+        removeEncounterFromQueue={removeEncounterFromQueue}
+        startActiveExpedition={startActiveExpedition}
+      />
       <div id="controls-panel">
         <button id="start-btn" className="ctrl-button" onClick={startGame} onMouseEnter={() => playSound(clickbutton)} disabled={isTraveling || isFighting || isReturningHome || isResting}>
           <span className="button-label"></span>
@@ -239,20 +158,7 @@ function AppContent() {
           </div>
         </div>
       )}
-      <div id="app-wrapper" style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
-        <div id="game" onMouseMove={handleMouseMove}>
-          <div id="battle-animation">{battleText}</div>
-          <div id="player-status">
-            {isFighting && <h3>🔴 Статус: В БОЮ!</h3>}
-            {isReturningHome && <h3>🏠 Статус: ИДЕТ ВОЗВРАЩЕНИЕ НА БАЗУ...</h3>}
-            {isResting && <h3>⛺ Статус: ПРИВАЛ (Регенерация)</h3>}
-            {isAtLocation && destinationZone && !isFighting && <h3>🎯 Статус: НА ТОЧКЕ "{destinationZone.name}" (Готовность к бою)</h3>}
-            {isTraveling && !isFighting && !isReturningHome && !isAtLocation && <h3>🗺️ Статус: В ПУТИ К "{destinationZone?.name || 'точке'}"</h3>}
-            {isAtBase && <h3>✅ Статус: НА БАЗЕ (Безопасная зона)</h3>}
-            {!isFighting && !isReturningHome && !isTraveling && !isAtBase && !isResting && !isAtLocation && <h3>🧭 Статус: В ПОЛЕ (Ожидание)</h3>}
-          </div>
-          <div id="main-section"></div>
-        </div>
+      
         <ArenaComponent
           logs={logs}
           isFighting={isFighting}
@@ -355,7 +261,6 @@ function AppContent() {
         )}
         {inventoryOpen && <InventoryModal />}
         {customizationItem && <CustomizationModal />}
-      </div>
     </>
   );
 }
